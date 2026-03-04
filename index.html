@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinity Drive</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- HUD Principal -->
+        <div id="hud">
+            <div class="hud-item">Pontos: <span id="score">0</span></div>
+            <div class="hud-item txt-gold">Moedas: <span id="coins">0</span></div>
+            <button id="btn-shop" class="btn">Loja</button>
+        </div>
+        
+        <!-- Canvas do Jogo -->
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        
+        <!-- Tela de Game Over -->
+        <div id="game-over" class="overlay hidden">
+            <h2 class="title-animation">Game Over!</h2>
+            <p>Sua Pontuação: <span id="final-score">0</span></p>
+            <p class="txt-gold">Total de Moedas: <span id="final-coins">0</span></p>
+            <div class="buttons-container">
+                <button id="btn-restart" class="btn btn-large">Jogar Novamente</button>
+                <button id="btn-shop-go" class="btn btn-secondary">Ir para a Garagem</button>
+            </div>
+        </div>
+
+        <!-- Tela da Loja / Garagem -->
+        <div id="shop" class="overlay hidden">
+            <h2 class="title-animation">Garagem</h2>
+            <p class="txt-gold mb-20">Saldo de Moedas: <span id="shop-coins">0</span></p>
+            
+            <div id="shop-items">
+                <!-- Itens da loja serão gerados pelo JS -->
+            </div>
+            
+            <button id="btn-close-shop" class="btn btn-large mt-20">Voltar ao Jogo</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="shop.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
