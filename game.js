@@ -70,7 +70,7 @@ document.addEventListener('keydown', (e) => {
         }
     }
     if (e.key === 'w' || e.key === 'W') {
-        gameSpeed = Math.min(15, gameSpeed + 2); // Limite máximo de velocidade manual
+        gameSpeed = Math.min(8, gameSpeed + 2); // Limite máximo de velocidade manual reduzido para 8
     }
     if (e.key === 's' || e.key === 'S') {
         gameSpeed = Math.max(1, gameSpeed - 2);
@@ -445,6 +445,17 @@ function draw() {
     }
     
     drawCar(ctx, player.x, player.y, player.width, player.height, player.color);
+
+    // DEBUG HUD: Mostra os valores internos do jogo no topo esquerdo do Canvas
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(5, 50, 150, 60);
+    ctx.fillStyle = '#00ff00';
+    ctx.font = '12px Courier';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`gameSpeed: ${gameSpeed.toFixed(1)}`, 10, 55);
+    ctx.fillText(`Inimigos: ${enemies.length}`, 10, 70);
+    ctx.fillText(`Dist (E): ${Math.floor(distanceSinceLastEnemy)}`, 10, 85);
 }
 
 // Fim de Jogo
