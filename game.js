@@ -25,6 +25,10 @@ let score = 0;
 let distance = 0;
 let gameSpeed = 5;
 
+// Controle de Spawns independentes de Frames
+let distanceSinceLastEnemy = 0;
+let distanceSinceLastCoin = 0;
+
 // Objeto do Jogador
 const player = {
     x: canvas.width / 2 - 20,
@@ -108,6 +112,9 @@ function initGame() {
     distance = 0;
     gameSpeed = 5;
     frameCount = 0;
+    distanceSinceLastEnemy = 0;
+    distanceSinceLastCoin = 0;
+
     player.x = canvas.width / 2 - player.width / 2;
 
     enemies = [];
@@ -163,6 +170,8 @@ function update() {
 
     frameCount++;
     distance += gameSpeed;
+    distanceSinceLastEnemy += gameSpeed;
+    distanceSinceLastCoin += gameSpeed;
 
     // A cada ~10 segundos (600 frames em 60fps), aumenta a velocidade da estrada
     if (frameCount % 600 === 0 && gameSpeed < 15) {
@@ -201,16 +210,17 @@ function update() {
         }
     }
 
-    // Estratégia de Spawn Dinâmica baseada na velocidade
-    // Quanto mais rápido o jogo, mais vezes os carros aparecem
-    let spawnRate = Math.max(30, 80 - Math.floor(gameSpeed * 2));
-
-    if (frameCount % spawnRate === 0) {
+    // Estratégia de Spawn Baseada em Distância Percorrida (Permite desacelerar sem encher a tela)
+    let minDistanceForEnemy = 150; // Distância mínima entre carros (em pixels)
+    
+    if (distanceSinceLastEnemy > minDistanceForEnemy && Math.random() < 0.05) {
         spawnEnemy();
+        distanceSinceLastEnemy = 0;
     }
 
-    if (frameCount % 120 === 0) { // Aparecem moedas com menos frequência que carros
+    if (distanceSinceLastCoin > 300 && Math.random() < 0.02) {
         spawnCoin();
+        distanceSinceLastCoin = 0;
     }
 
     // Atualiza Inimigos
