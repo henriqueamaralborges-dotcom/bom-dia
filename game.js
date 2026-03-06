@@ -139,14 +139,14 @@ function spawnEnemy() {
     const maxX = canvas.width - width - 20;
     const x = Math.random() * (maxX - minX) + minX;
 
-    // Inimigos tem velocidade levemente variada da estrada (descem mais rápido)
-    const speed = gameSpeed + (Math.random() * 2 + 1);
+    // Inimigos tem velocidade levemente variada em relação à estrada (descem um pouco mais rápido)
+    const speedOffset = Math.random() * 2 + 1;
 
     // Cores aleatórias para inimigos
     const colors = ['#33ff33', '#3333ff', '#ff33ff', '#33ffff', '#ff9900', '#aaaaaa'];
     const color = colors[Math.floor(Math.random() * colors.length)];
 
-    enemies.push({ x, y: -height, width, height, speed, color });
+    enemies.push({ x, y: -height, width, height, speedOffset, color });
 }
 
 function spawnCoin() {
@@ -216,7 +216,7 @@ function update() {
     // Atualiza Inimigos
     for (let i = 0; i < enemies.length; i++) {
         let e = enemies[i];
-        e.y += e.speed;
+        e.y += gameSpeed + e.speedOffset;
 
         // Hitbox menorzinha pra ser justo (perdoar colisões de raspão)
         const margin = 4;
