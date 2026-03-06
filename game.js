@@ -66,7 +66,7 @@ document.addEventListener('keydown', (e) => {
         }
     }
     if (e.key === 'w' || e.key === 'W') {
-        gameSpeed += 2;
+        gameSpeed = Math.min(15, gameSpeed + 2); // Limite máximo de velocidade manual
     }
     if (e.key === 's' || e.key === 'S') {
         gameSpeed = Math.max(1, gameSpeed - 2);
@@ -165,7 +165,7 @@ function update() {
     distance += gameSpeed;
 
     // A cada ~10 segundos (600 frames em 60fps), aumenta a velocidade da estrada
-    if (frameCount % 600 === 0) {
+    if (frameCount % 600 === 0 && gameSpeed < 15) {
         gameSpeed += 0.5;
     }
 
