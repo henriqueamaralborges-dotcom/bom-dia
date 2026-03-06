@@ -23,7 +23,7 @@ let isGamePaused = false;
 let frameCount = 0;
 let score = 0;
 let distance = 0;
-let gameSpeed = 5;
+let gameSpeed = 2;
 
 // Controle de Spawns independentes de Frames
 let distanceSinceLastEnemy = 0;
@@ -70,7 +70,7 @@ document.addEventListener('keydown', (e) => {
         }
     }
     if (e.key === 'w' || e.key === 'W') {
-        gameSpeed = Math.min(8, gameSpeed + 2); // Limite máximo de velocidade manual reduzido para 8
+        gameSpeed = Math.min(4, gameSpeed + 1); // Limite máximo de velocidade reduzido para 4
     }
     if (e.key === 's' || e.key === 'S') {
         gameSpeed = Math.max(1, gameSpeed - 2);
@@ -110,7 +110,7 @@ function initGame() {
     isGamePaused = false;
     score = 0;
     distance = 0;
-    gameSpeed = 5;
+    gameSpeed = 2;
     frameCount = 0;
     distanceSinceLastEnemy = 0;
     distanceSinceLastCoin = 0;
@@ -174,7 +174,7 @@ function update() {
     distanceSinceLastCoin += gameSpeed;
 
     // A cada ~10 segundos (600 frames em 60fps), aumenta a velocidade da estrada
-    if (frameCount % 600 === 0 && gameSpeed < 15) {
+    if (frameCount % 600 === 0 && gameSpeed < 4) {
         gameSpeed += 0.5;
     }
 
