@@ -54,14 +54,29 @@ const keys = {
 
 document.addEventListener('keydown', (e) => {
     if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
-    if (e.key === 'A') keys.a = true;
-    if (e.key === 'D') keys.d = true;
+    if (e.key === 'a' || e.key === 'A') keys.a = true;
+    if (e.key === 'd' || e.key === 'D') keys.d = true;
+
+    // Cheats para testes
+    if (e.key === 'p' || e.key === 'P') {
+        if (typeof totalCoins !== 'undefined') {
+            totalCoins += 1000;
+            if (UI.coins) UI.coins.innerText = totalCoins;
+            if (typeof saveProgress === 'function') saveProgress();
+        }
+    }
+    if (e.key === 'w' || e.key === 'W') {
+        gameSpeed += 2;
+    }
+    if (e.key === 's' || e.key === 'S') {
+        gameSpeed = Math.max(1, gameSpeed - 2);
+    }
 });
 
 document.addEventListener('keyup', (e) => {
     if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
-    if (e.key === 'A') keys.a = false;
-    if (e.key === 'D') keys.d = false;
+    if (e.key === 'a' || e.key === 'A') keys.a = false;
+    if (e.key === 'd' || e.key === 'D') keys.d = false;
 });
 
 // Inputs (Toque - suporte básico para mobile)
@@ -242,30 +257,68 @@ function update() {
 
 // Funções de Desenho
 function drawCar(ctx, x, y, width, height, color) {
-    // Chassi Principal
+    // Sombra do carro
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.beginPath();
+    ctx.roundRect(x + 4, y + 4, width, height, 5);
+    ctx.fill();
+
+    // Pneus
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(x - 2, y + 10, 4, 12); // Pneu Esq Frente
+    ctx.fillRect(x + width - 2, y + 10, 4, 12); // Pneu Dir Frente
+    ctx.fillRect(x - 2, y + height - 22, 4, 12); // Pneu Esq Trás
+    ctx.fillRect(x + width - 2, y + height - 22, 4, 12); // Pneu Dir Trás
+
+    // Chassi Principal com Degradê
+    const grad = ctx.createLinearGradient(x, y, x + width, y);
+    grad.addColorStop(0, color);
+    grad.addColorStop(0.5, '#ffffff33'); // Brilho leve no centro
+    grad.addColorStop(1, color);
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, 6);
+    ctx.fill();
+
+    // Teto / Cockpit
     ctx.fillStyle = color;
+    ctx.filter = 'brightness(85%)'; // Escurecer levemente a parte central
     ctx.beginPath();
-    ctx.roundRect(x, y, width, height, 5);
+    ctx.roundRect(x + 4, y + 14, width - 8, height - 28, 4);
+    ctx.fill();
+    ctx.filter = 'none';
+
+    // Parabrisas (Vidros escuros com reflexo)
+    ctx.fillStyle = '#223344';
+    ctx.beginPath();
+    ctx.roundRect(x + 5, y + 15, width - 10, 12, 3); // Dianteiro
+    ctx.roundRect(x + 5, y + height - 25, width - 10, 10, 3); // Traseiro
     ctx.fill();
 
-    // Parabrisa (Vidros)
-    ctx.fillStyle = '#88ccff';
+    // Reflexo no vidro dianteiro
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.beginPath();
-    // Dianteiro
-    ctx.roundRect(x + 4, y + 12, width - 8, 14, 2);
-    // Traseiro
-    ctx.roundRect(x + 4, y + height - 16, width - 8, 10, 2);
+    ctx.rect(x + 5, y + 15, width - 10, 4);
     ctx.fill();
 
-    // Faróis (Luzes)
-    ctx.fillStyle = '#ffffaa'; // Amarelado
-    ctx.fillRect(x + 2, y + 2, 8, 6); // Esq
-    ctx.fillRect(x + width - 10, y + 2, 8, 6); // Dir
+    // Faróis (Dianteiros - Luz branca/amarelada dependendo do status)
+    ctx.fillStyle = '#ffffee'; 
+    ctx.beginPath();
+    ctx.roundRect(x + 3, y + 2, 8, 5, 2); // Esq
+    ctx.roundRect(x + width - 11, y + 2, 8, 5, 2); // Dir
+    ctx.fill();
 
-    // Lanternas Traseiras (Vermelho)
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(x + 2, y + height - 8, 10, 6); // Esq
-    ctx.fillRect(x + width - 12, y + height - 8, 10, 6); // Dir
+    // Lanternas Traseiras (Vermelho vivo)
+    ctx.fillStyle = '#ff2222';
+    ctx.beginPath();
+    ctx.roundRect(x + 3, y + height - 6, 10, 4, 2); // Esq
+    ctx.roundRect(x + width - 13, y + height - 6, 10, 4, 2); // Dir
+    ctx.fill();
+    
+    // Detalhe central no parachoque traseiro (Plaquinha / Exaustão)
+    ctx.fillStyle = '#333';
+    ctx.fillRect(x + width/2 - 4, y + height - 4, 8, 3);
 }
 
 function drawCoin(ctx, x, y, size) {
@@ -273,48 +326,97 @@ function drawCoin(ctx, x, y, size) {
     const ry = y + size / 2;
     const r = size / 2;
 
-    // Brilho da moeda
+    // Sombra da moeda
     ctx.beginPath();
-    ctx.arc(rx, ry, r, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffd700';
+    ctx.arc(rx, ry + 4, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.fill();
 
+    // Moeda (Centro amarelo com borda mais escura)
+    const grad = ctx.createRadialGradient(rx - size/4, ry - size/4, size/10, rx, ry, r);
+    grad.addColorStop(0, '#ffffaa');
+    grad.addColorStop(0.6, '#ffd700');
+    grad.addColorStop(1, '#b8860b');
+
+    ctx.beginPath();
+    ctx.arc(rx, ry, r, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Borda interna brilhante
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = '#cda500';
+    ctx.strokeStyle = '#fff172';
+    ctx.beginPath();
+    ctx.arc(rx, ry, r - 2, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Símbolo $
-    ctx.fillStyle = '#aa8000';
-    ctx.font = 'bold 14px "Segoe UI"';
+    // Símbolo $ texturizado
+    ctx.fillStyle = '#946c00'; // Sombra do texto
+    ctx.font = 'bold 15px "Segoe UI", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('$', rx, ry + 1);
+    ctx.fillText('$', rx, ry + 1.5);
+    
+    ctx.fillStyle = '#ffffff'; // Brilho principal
+    ctx.fillText('$', rx, ry - 0.5);
 }
 
 function draw() {
     // Limpa a tela
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Fundo da Estrada (Asfalto Escuro)
-    ctx.fillStyle = '#2f3136';
+    // Fundo da Estrada (Asfalto Realista)
+    ctx.fillStyle = '#383a40';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Grama / Borda (Verde escuro de corrida)
-    ctx.fillStyle = '#115a11';
-    ctx.fillRect(0, 0, 15, canvas.height);
-    ctx.fillRect(canvas.width - 15, 0, 15, canvas.height);
-
-    // Linhas da Estrada
-    ctx.fillStyle = '#e0e0e0';
-    for (let i = 0; i < roadLines.length; i++) {
-        // Linhas tracejadas no meio de 2 faixas
-        ctx.fillRect(canvas.width / 3, roadLines[i].y, 4, 30);
-        ctx.fillRect((canvas.width / 3) * 2, roadLines[i].y, 4, 30);
+    
+    // Detalhe de textura no asfalto fina (para dar sensação de velocidade)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+    for(let i=0; i<15; i++) {
+        let rsx = (Math.sin(i * 123) * 1000) % canvas.width;
+        let rsy = (i * 100 + frameCount * (gameSpeed * 1.2)) % canvas.height;
+        ctx.fillRect(Math.abs(rsx), rsy, 3, 15);
     }
 
-    // Desenha Moedas
+    // Grama / Borda (Verde escuro de corrida com sombra lateral)
+    const gGradL = ctx.createLinearGradient(0, 0, 18, 0);
+    gGradL.addColorStop(0, '#155d27');
+    gGradL.addColorStop(1, '#0e3a19'); // escurece chegando na pista
+
+    const gGradR = ctx.createLinearGradient(canvas.width - 18, 0, canvas.width, 0);
+    gGradR.addColorStop(0, '#0e3a19'); // escurece chegando na pista
+    gGradR.addColorStop(1, '#155d27');
+
+    ctx.fillStyle = gGradL;
+    ctx.fillRect(0, 0, 18, canvas.height);
+    
+    ctx.fillStyle = gGradR;
+    ctx.fillRect(canvas.width - 18, 0, 18, canvas.height);
+
+    // Listras laterais tipo zebra da corrida (Vermelho e Branco)
+    const zebraSpeedBase = (frameCount * gameSpeed) % 60;
+    for (let i = -60; i < canvas.height; i += 60) {
+        ctx.fillStyle = (i + Math.floor(frameCount * gameSpeed / 60) * 60) % 120 < 60 ? '#cc0000' : '#ffffff';
+        // Margem esquerda
+        ctx.fillRect(18, i + zebraSpeedBase, 4, 60);
+        // Margem direita
+        ctx.fillRect(canvas.width - 22, i + zebraSpeedBase, 4, 60);
+    }
+
+    // Linhas centrais da Estrada tracejadas
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    for (let i = 0; i < roadLines.length; i++) {
+        // Linhas tracejadas no meio de 2 faixas com leve desfoque sombra
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 4;
+        ctx.fillRect(canvas.width / 3 - 2, roadLines[i].y, 4, 30);
+        ctx.fillRect((canvas.width / 3) * 2 - 2, roadLines[i].y, 4, 30);
+        ctx.shadowBlur = 0;
+    }
+
+    // Moedas
     for (let c of coins) {
-        drawCoin(ctx, c.x, c.y, c.width);
+        let hoverY = Math.sin((frameCount + c.x) * 0.1) * 3;
+        drawCoin(ctx, c.x, c.y + hoverY, c.width);
     }
 
     // Desenha Inimigos
@@ -322,7 +424,16 @@ function draw() {
         drawCar(ctx, e.x, e.y, e.width, e.height, e.color);
     }
 
-    // Desenha Jogador
+    // Desenha Jogador com Efeito de Exaustão (Fogo/Fumaça saindo do cano de escape ao acelerar)
+    if (!isGameOver && !isGamePaused && gameSpeed >= 4) {
+        ctx.fillStyle = frameCount % 4 < 2 ? '#ffb700' : '#ff4400';
+        ctx.beginPath();
+        let fx = player.x + player.width/2;
+        let fy = player.y + player.height;
+        ctx.arc(fx, fy + (4 + Math.random()*6), 2 + Math.random()*2.5, 0, Math.PI*2);
+        ctx.fill();
+    }
+    
     drawCar(ctx, player.x, player.y, player.width, player.height, player.color);
 }
 
