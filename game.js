@@ -23,6 +23,7 @@ let isGamePaused = false;
 let frameCount = 0;
 let score = 0;
 let distance = 0;
+let totalDistance = 0;
 let gameSpeed = 2;
 
 // Controle de Spawns independentes de Frames
@@ -104,6 +105,7 @@ function initGame() {
     isGamePaused = false;
     score = 0;
     distance = 0;
+    totalDistance = 0;
     gameSpeed = 2;
     frameCount = 0;
     distanceSinceLastEnemy = 0;
@@ -164,14 +166,12 @@ function update() {
 
     frameCount++;
     distance += gameSpeed;
+    totalDistance += gameSpeed;
     distanceSinceLastEnemy += gameSpeed;
     distanceSinceLastCoin += gameSpeed;
 
-    // A cada ~10 segundos (600 frames em 60fps), aumenta a velocidade da estrada progressivamente
-    if (frameCount % 600 === 0) {
-        // Incremento menor para não deixar impossível muito rápido, e sem limite máximo
-        gameSpeed += 0.2;
-    }
+    // Aumenta a velocidade da estrada progressivamente a cada frame de forma bem suave
+    gameSpeed += 0.001;
 
     // A cada distância percorrida, ganha pontos
     if (distance > 100) {
@@ -378,7 +378,7 @@ function draw() {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
     for(let i=0; i<15; i++) {
         let rsx = (Math.sin(i * 123) * 1000) % canvas.width;
-        let rsy = (i * 100 + frameCount * (gameSpeed * 1.2)) % canvas.height;
+        let rsy = (i * 100 + totalDistance * 1.2) % canvas.height;
         ctx.fillRect(Math.abs(rsx), rsy, 3, 15);
     }
 
@@ -398,9 +398,9 @@ function draw() {
     ctx.fillRect(canvas.width - 18, 0, 18, canvas.height);
 
     // Listras laterais tipo zebra da corrida (Vermelho e Branco)
-    const zebraSpeedBase = (frameCount * gameSpeed) % 60;
+    const zebraSpeedBase = totalDistance % 60;
     for (let i = -60; i < canvas.height; i += 60) {
-        ctx.fillStyle = (i + Math.floor(frameCount * gameSpeed / 60) * 60) % 120 < 60 ? '#cc0000' : '#ffffff';
+        ctx.fillStyle = (i + Math.floor(totalDistance / 60) * 60) % 120 < 60 ? '#cc0000' : '#ffffff';
         // Margem esquerda
         ctx.fillRect(18, i + zebraSpeedBase, 4, 60);
         // Margem direita
