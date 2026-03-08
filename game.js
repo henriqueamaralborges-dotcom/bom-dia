@@ -69,12 +69,6 @@ document.addEventListener('keydown', (e) => {
             if (typeof saveProgress === 'function') saveProgress();
         }
     }
-    if (e.key === 'w' || e.key === 'W') {
-        gameSpeed = Math.min(4, gameSpeed + 1); // Limite máximo de velocidade reduzido para 4
-    }
-    if (e.key === 's' || e.key === 'S') {
-        gameSpeed = Math.max(1, gameSpeed - 2);
-    }
 });
 
 document.addEventListener('keyup', (e) => {
@@ -173,9 +167,10 @@ function update() {
     distanceSinceLastEnemy += gameSpeed;
     distanceSinceLastCoin += gameSpeed;
 
-    // A cada ~10 segundos (600 frames em 60fps), aumenta a velocidade da estrada
-    if (frameCount % 600 === 0 && gameSpeed < 4) {
-        gameSpeed += 0.5;
+    // A cada ~10 segundos (600 frames em 60fps), aumenta a velocidade da estrada progressivamente
+    if (frameCount % 600 === 0) {
+        // Incremento menor para não deixar impossível muito rápido, e sem limite máximo
+        gameSpeed += 0.2;
     }
 
     // A cada distância percorrida, ganha pontos
