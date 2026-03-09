@@ -171,7 +171,8 @@ function update() {
     distanceSinceLastCoin += gameSpeed;
 
     // Aumenta a velocidade da estrada progressivamente a cada frame de forma bem suave
-    gameSpeed += 0.001;
+    // Incremento levemente maior para ser mais perceptível (0.001 -> 0.0015)
+    gameSpeed += 0.0015;
 
     // A cada distância percorrida, ganha pontos
     if (distance > 100) {
@@ -441,16 +442,7 @@ function draw() {
     
     drawCar(ctx, player.x, player.y, player.width, player.height, player.color);
 
-    // DEBUG HUD: Mostra os valores internos do jogo no topo esquerdo do Canvas
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(5, 50, 150, 60);
-    ctx.fillStyle = '#00ff00';
-    ctx.font = '12px Courier';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(`gameSpeed: ${gameSpeed.toFixed(1)}`, 10, 55);
-    ctx.fillText(`Inimigos: ${enemies.length}`, 10, 70);
-    ctx.fillText(`Dist (E): ${Math.floor(distanceSinceLastEnemy)}`, 10, 85);
+    // DEBUG HUD REMOVIDO PARA O JOGADOR NÃO TER ACESSO À VELOCIDADE EXATA
 }
 
 // Fim de Jogo
