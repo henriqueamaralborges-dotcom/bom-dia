@@ -12,6 +12,7 @@
         <div id="hud">
             <div class="hud-item">Pontos: <span id="score">0</span></div>
             <div class="hud-item txt-gold">Moedas: <span id="coins">0</span></div>
+            <button id="btn-pause" class="btn">Pausa</button>
             <button id="btn-shop" class="btn">Loja</button>
         </div>
         
@@ -28,6 +29,15 @@
             </div>
         </div>
         
+        <!-- Tela de Pausa -->
+        <div id="pause-screen" class="overlay hidden">
+            <h2 class="title-animation">Jogo Pausado</h2>
+            <div class="buttons-container mt-20">
+                <button id="btn-resume" class="btn btn-large mb-20">Continuar Jogando</button>
+                <button id="btn-shop-pause" class="btn btn-secondary">Garagem / Loja</button>
+            </div>
+        </div>
+
         <!-- Tela de Game Over -->
         <div id="game-over" class="overlay hidden">
             <h2 class="title-animation">Game Over!</h2>

@@ -18,7 +18,11 @@ const UI = {
     startMenu: document.getElementById('start-menu'),
     btnStart: document.getElementById('btn-start'),
     btnShopMenu: document.getElementById('btn-shop-menu'),
-    highScore: document.getElementById('high-score')
+    highScore: document.getElementById('high-score'),
+    pauseButton: document.getElementById('btn-pause'),
+    pauseScreen: document.getElementById('pause-screen'),
+    btnResume: document.getElementById('btn-resume'),
+    btnShopPause: document.getElementById('btn-shop-pause')
 };
 
 // Configurações do Jogo
@@ -30,6 +34,7 @@ let score = 0;
 let distance = 0;
 let totalDistance = 0;
 let gameSpeed = 3;
+let gameLoopId = null;
 
 // Controle de Spawns independentes de Frames
 let distanceSinceLastEnemy = 0;
@@ -133,13 +138,15 @@ function initGame() {
     UI.gameOverScreen.classList.add('hidden');
     UI.shopScreen.classList.add('hidden');
     UI.startMenu.classList.add('hidden');
+    UI.pauseScreen.classList.add('hidden');
     UI.score.innerText = '0';
     UI.coins.innerText = totalCoins; // Variável vem de shop.js
 
     updatePlayerCarColor();
 
-    // Inicia loop
-    requestAnimationFrame(gameLoop);
+    // Inicia loop (cancelando qualquer um anterior por segurança)
+    if (gameLoopId) cancelAnimationFrame(gameLoopId);
+    gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 function showMainMenu() {
@@ -486,10 +493,13 @@ function triggerGameOver() {
 // Loop Principal
 function gameLoop() {
     if (isGameStarted) {
-        update();
+        if (!isGamePaused && !isGameOver) {
+            update();
+        }
         draw();
+        
         if (!isGameOver) {
-            requestAnimationFrame(gameLoop);
+            gameLoopId = requestAnimationFrame(gameLoop);
         }
     }
 }
@@ -516,6 +526,31 @@ UI.btnShopGo.addEventListener('click', () => {
     updateShopUI();
 });
 
+UI.btnPause.addEventListener('click', () => {
+    if (isGameStarted && !isGameOver && !isGamePaused) {
+        togglePause();
+    }
+});
+
+UI.btnResume.addEventListener('click', () => {
+    togglePause();
+});
+
+UI.btnShopPause.addEventListener('click', () => {
+    UI.pauseScreen.classList.add('hidden');
+    UI.shopScreen.classList.remove('hidden');
+    updateShopUI();
+});
+
+function togglePause() {
+    isGamePaused = !isGamePaused;
+    if (isGamePaused) {
+        UI.pauseScreen.classList.remove('hidden');
+    } else {
+        UI.pauseScreen.classList.add('hidden');
+    }
+}
+
 UI.btnShop.addEventListener('click', () => {
     if (!isGameOver) {
         isGamePaused = true;
@@ -531,8 +566,9 @@ UI.btnCloseShop.addEventListener('click', () => {
     if (!isGameStarted) {
         UI.startMenu.classList.remove('hidden');
     } else if (!isGameOver && isGamePaused) {
+        // Apenas despausa o jogo
+        // O loop já está rodando nos bastidores, apenas esperando isGamePaused ser false
         isGamePaused = false;
-        requestAnimationFrame(gameLoop);
     } else if (isGameOver) {
         UI.gameOverScreen.classList.remove('hidden');
     }
@@ -547,7 +583,10 @@ function menuAnimationLoop() {
     if (!isGameStarted) {
         update();
         draw();
-        requestAnimationFrame(menuAnimationLoop);
+        gameLoopId = requestAnimationFrame(menuAnimationLoop);
     }
 }
+
+// Inicia o processo limpando qualquer loop fantasma
+if (gameLoopId) cancelAnimationFrame(gameLoopId);
 menuAnimationLoop();
