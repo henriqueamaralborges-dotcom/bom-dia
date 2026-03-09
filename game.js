@@ -257,82 +257,99 @@ function drawVehicle(ctx, x, y, w, h, color, type) {
     ctx.shadowOffsetY = 10;
 
     if (type === 'road') {
-        // Car Body
-        ctx.fillStyle = color;
+        // Car Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.beginPath(); ctx.roundRect(x+5, y+5, w, h, 8); ctx.fill();
+
+        // Car Body (3D effect)
+        const carGrad = ctx.createLinearGradient(x, y, x + w, y);
+        carGrad.addColorStop(0, color);
+        carGrad.addColorStop(0.5, 'rgba(255,255,255,0.3)');
+        carGrad.addColorStop(1, color);
+        
+        ctx.fillStyle = carGrad;
         ctx.beginPath(); ctx.roundRect(x, y, w, h, 8); ctx.fill();
-        // Highlights
-        ctx.fillStyle = 'rgba(255,255,255,0.2)';
-        ctx.fillRect(x + 5, y + 10, w - 10, 5);
-        // Windows
-        ctx.fillStyle = '#1a2a3a';
-        ctx.beginPath(); ctx.roundRect(x + 4, y + 15, w - 8, 15, 4); ctx.fill();
-        // Headlights glow
-        ctx.shadowColor = '#ffffaa'; ctx.shadowBlur = 20;
-        ctx.fillStyle = '#ffffee';
-        ctx.fillRect(x + 4, y + 2, 8, 4); ctx.fillRect(x + w - 12, y + 2, 8, 4);
+
+        // Roof / Windows
+        ctx.fillStyle = '#1a1d23';
+        ctx.beginPath(); ctx.roundRect(x + 5, y + 15, w - 10, 18, 4); ctx.fill();
+        
+        // Highlights on roof
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(x + 7, y + 17, w - 14, 4);
+
+        // Headlights (Neon Glow)
+        ctx.shadowColor = '#fff'; ctx.shadowBlur = 10;
+        ctx.fillStyle = '#ffffcc';
+        ctx.fillRect(x + 4, y + 2, 8, 5); ctx.fillRect(x + w - 12, y + 2, 8, 5);
+        ctx.shadowBlur = 0;
+
+        // Tail Lights
+        ctx.fillStyle = '#ff3300';
+        ctx.fillRect(x + 5, y + h - 6, 8, 3); ctx.fillRect(x + w - 13, y + h - 6, 8, 3);
     } else if (type === 'water') {
-        // Boat Hull (Premium Sharp Shape)
-        ctx.fillStyle = color;
+        // Boat Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath(); ctx.ellipse(x+w/2+5, y+h/2+5, w/2, h/2, 0, 0, Math.PI*2); ctx.fill();
+
+        // Hull (Sharp V-Shape)
+        const boatGrad = ctx.createLinearGradient(x, y, x + w, y);
+        boatGrad.addColorStop(0, color);
+        boatGrad.addColorStop(0.5, 'rgba(255,255,255,0.4)');
+        boatGrad.addColorStop(1, color);
+        
+        ctx.fillStyle = boatGrad;
         ctx.beginPath();
-        ctx.moveTo(x + w / 2, y); // Pointy bow
-        ctx.lineTo(x + w, y + h * 0.3);
-        ctx.lineTo(x + w, y + h);
-        ctx.lineTo(x, y + h);
-        ctx.lineTo(x, y + h * 0.3);
+        ctx.moveTo(x + w / 2, y);
+        ctx.lineTo(x + w, y + h * 0.4);
+        ctx.lineTo(x + w - 4, y + h);
+        ctx.lineTo(x + 4, y + h);
+        ctx.lineTo(x, y + h * 0.4);
         ctx.closePath();
         ctx.fill();
 
-        // Deck Detail
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.beginPath(); ctx.roundRect(x + 5, y + 15, w - 10, h - 25, 5); ctx.fill();
+        // Interior Deck
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.roundRect(x + 6, y + h*0.3, w - 12, h*0.6, 5); ctx.fill();
 
-        // Cabin / Glass
-        ctx.fillStyle = '#1a3a4a';
-        ctx.beginPath(); ctx.roundRect(x + 8, y + 25, w - 16, 20, 3); ctx.fill();
+        // Windshield (Blueish Glass)
+        ctx.fillStyle = 'rgba(0, 162, 255, 0.6)';
+        ctx.beginPath(); ctx.moveTo(x + 6, y + h*0.4); ctx.lineTo(x + w - 6, y + h*0.4);
+        ctx.lineTo(x + w - 10, y + h*0.5); ctx.lineTo(x + 10, y + h*0.5); ctx.closePath(); ctx.fill();
 
-        // Engine / Wake point
-        ctx.fillStyle = '#333';
-        ctx.fillRect(x + w / 2 - 6, y + h - 5, 12, 10);
+        // Motor detail
+        ctx.fillStyle = '#222';
+        ctx.fillRect(x + w/2 - 6, y + h - 4, 12, 12);
     } else if (type === 'air') {
-        // Wings (Detailed)
+        // Plane Shadow (Offset for altitude)
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath(); ctx.ellipse(x+w/2+20, y+h/2+20, w*1.5, h/2, 0, 0, Math.PI*2); ctx.fill();
+
+        // Wings
         ctx.fillStyle = color;
-        ctx.beginPath(); 
-        ctx.roundRect(x - w * 1.2, y + h * 0.35, w * 3.4, h * 0.18, 10); 
-        ctx.fill();
-        
-        // Wing Details (Flaps/Lines)
-        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x - w * 1.2, y + h * 0.35, w * 3.4, h * 0.18);
+        ctx.beginPath(); ctx.roundRect(x - w*1.3, y + h*0.3, w*3.6, h*0.2, 10); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; ctx.stroke();
 
         // Fuselage (Body)
-        const fuselageGrad = ctx.createLinearGradient(x, y, x + w, y);
-        fuselageGrad.addColorStop(0, color);
-        fuselageGrad.addColorStop(0.5, '#fff');
-        fuselageGrad.addColorStop(1, color);
-        ctx.fillStyle = fuselageGrad;
-        ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2, w / 1.8, h / 2, 0, 0, Math.PI * 2); ctx.fill();
+        const fuseGrad = ctx.createLinearGradient(x, y, x+w, y);
+        fuseGrad.addColorStop(0, color); fuseGrad.addColorStop(0.5, '#fff'); fuseGrad.addColorStop(1, color);
+        ctx.fillStyle = fuseGrad;
+        ctx.beginPath(); ctx.ellipse(x + w/2, y + h/2, w/1.8, h/2, 0, 0, Math.PI*2); ctx.fill();
 
-        // Tail
+        // Tail Fin
         ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(x + w / 2, y + h);
-        ctx.lineTo(x + w + 10, y + h + 15);
-        ctx.lineTo(x - 10, y + h + 15);
-        ctx.closePath();
-        ctx.fill();
+        ctx.beginPath(); ctx.moveTo(x+w/2, y+h); ctx.lineTo(x+w+8, y+h+12); ctx.lineTo(x-8, y+h+12); ctx.closePath(); ctx.fill();
 
-        // Cockpit
-        ctx.fillStyle = 'rgba(0, 198, 255, 0.4)';
-        ctx.beginPath(); ctx.ellipse(x + w / 2, y + h * 0.25, w * 0.3, h * 0.15, 0, 0, Math.PI * 2); ctx.fill();
+        // Cockpit Glass
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+        ctx.beginPath(); ctx.ellipse(x + w/2, y + h*0.2, w*0.3, h*0.12, 0, 0, Math.PI*2); ctx.fill();
 
-        // Propeller Blur (Animated-style)
+        // Rotating Propeller
         ctx.save();
-        ctx.translate(x + w / 2, y);
-        ctx.rotate(frameCount * 0.5);
-        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-        ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.moveTo(-w, 0); ctx.lineTo(w, 0); ctx.stroke();
+        ctx.translate(x + w/2, y);
+        ctx.rotate(frameCount * 0.6);
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(-w*0.8, 0); ctx.lineTo(w*0.8, 0); ctx.stroke();
         ctx.restore();
     }
     
@@ -343,73 +360,79 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (currentMode === 'road') {
-        const grd = ctx.createLinearGradient(0, 0, canvas.width, 0);
-        grd.addColorStop(0, '#1a1a1a'); grd.addColorStop(0.5, '#2a2a2a'); grd.addColorStop(1, '#1a1a1a');
-        ctx.fillStyle = grd; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Asphalt Grain Texture
+        const asphaltGrd = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        asphaltGrd.addColorStop(0, '#111'); asphaltGrd.addColorStop(0.5, '#222'); asphaltGrd.addColorStop(1, '#111');
+        ctx.fillStyle = asphaltGrd; ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.fillStyle = 'rgba(255,255,255,0.03)';
+        for(let i=0; i<100; i++) {
+            ctx.fillRect(Math.abs(Math.sin(i)*canvas.width), (i*20 + totalDistance*2)%canvas.height, 2, 2);
+        }
+
+        // Road Lines (Premium)
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
         roadLines.forEach(l => {
-            ctx.fillRect(canvas.width / 3 - 2, l.y, 4, 40);
-            ctx.fillRect((canvas.width / 3) * 2 - 2, l.y, 4, 40);
+            ctx.fillRect(canvas.width / 3 - 3, l.y, 6, 50);
+            ctx.fillRect((canvas.width / 3) * 2 - 3, l.y, 6, 50);
         });
-        // Side barriers
-        ctx.fillStyle = '#ff4b2b';
-        ctx.fillRect(0, 0, 10, canvas.height);
-        ctx.fillRect(canvas.width - 10, 0, 10, canvas.height);
+
+        // Neon Barrier
+        ctx.fillStyle = '#ff0055';
+        ctx.shadowColor = '#ff0055'; ctx.shadowBlur = 15;
+        ctx.fillRect(0, 0, 8, canvas.height);
+        ctx.fillRect(canvas.width - 8, 0, 8, canvas.height);
+        ctx.shadowBlur = 0;
     } else if (currentMode === 'water') {
-        // Deep Water Gradient
+        // Deep Water with animated waves
         const waterGrd = ctx.createLinearGradient(0, 0, 0, canvas.height);
         waterGrd.addColorStop(0, '#001a33');
-        waterGrd.addColorStop(0.5, '#003366');
+        waterGrd.addColorStop(0.5, '#004080');
         waterGrd.addColorStop(1, '#001a33');
         ctx.fillStyle = waterGrd; ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Moving Waves / Sparkles
-        for(let i=0; i<30; i++) {
-            let wx = (Math.sin(i * 432) * 1000) % canvas.width;
-            let wy = (i * 50 + totalDistance * 1.5) % (canvas.height + 50);
-            ctx.fillStyle = 'rgba(255,255,255,0.05)';
-            ctx.fillRect(Math.abs(wx), wy, 40, 2);
+        // Dynamic Wave Sparkles
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        for(let i=0; i<40; i++) {
+            let wx = (Math.sin(i * 123) * 2000) % canvas.width;
+            let wy = (i * 40 + totalDistance * 2.5) % (canvas.height + 50);
+            ctx.fillRect(Math.abs(wx), wy, 30, 1.5);
         }
 
-        // Shorelines (Sand/Grass)
-        ctx.fillStyle = '#d2b48c'; // Sand
-        ctx.fillRect(0, 0, 15, canvas.height);
-        ctx.fillRect(canvas.width - 15, 0, 15, canvas.height);
+        // Animated Shorelines
+        ctx.fillStyle = '#e6ccb3'; // Sand
+        ctx.fillRect(0, 0, 20, canvas.height);
+        ctx.fillRect(canvas.width - 20, 0, 20, canvas.height);
         
-        // Shore Grass bits
-        ctx.fillStyle = '#2d5a27';
-        for(let i=0; i<canvas.height; i+=40) {
+        // Shore Details (Tropical Vibes)
+        ctx.fillStyle = '#1e4d2b';
+        for(let i=0; i<canvas.height; i+=60) {
             let sy = (i + totalDistance)%canvas.height;
-            ctx.fillRect(0, sy, 5, 20);
-            ctx.fillRect(canvas.width-5, sy, 5, 20);
+            ctx.beginPath(); ctx.arc(0, sy, 10, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(canvas.width, sy, 10, 0, Math.PI*2); ctx.fill();
         }
     } else if (currentMode === 'air') {
-        // Atmospheric Sky Gradient
+        // Atmospheric Sky
         const skyGrd = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        skyGrd.addColorStop(0, '#004e92');
-        skyGrd.addColorStop(0.7, '#00b4db');
-        skyGrd.addColorStop(1, '#87ceeb');
+        skyGrd.addColorStop(0, '#00264d'); skyGrd.addColorStop(1, '#00bfff');
         ctx.fillStyle = skyGrd; ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Distant Lands (Moving slowly below clouds)
-        ctx.fillStyle = 'rgba(34, 139, 34, 0.1)';
-        for(let i=0; i<3; i++) {
-            let ly = (i * 300 + totalDistance * 0.2) % (canvas.height + 200);
-            ctx.beginPath(); ctx.ellipse(Math.random()*canvas.width, ly, 100, 50, 0, 0, Math.PI*2); ctx.fill();
+        // Moving High-altitude Stars/Glitter
+        ctx.fillStyle = '#fff';
+        for(let i=0; i<40; i++) {
+            ctx.globalAlpha = Math.random() * 0.5;
+            ctx.fillRect(Math.random()*canvas.width, (i*100 + totalDistance*0.1)%canvas.height, 2, 2);
         }
+        ctx.globalAlpha = 1.0;
 
-        // Clouds (Multi-layered & Soft)
-        ctx.filter = 'blur(4px)';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        for(let i=0; i<8; i++) {
-            let cx = (Math.sin(i * 123) * 1000) % canvas.width;
-            let cy = (i * 120 + totalDistance * 0.8) % (canvas.height + 100) - 50;
-            ctx.beginPath();
-            ctx.arc(Math.abs(cx), cy, 35, 0, Math.PI*2);
-            ctx.arc(Math.abs(cx) + 25, cy + 10, 25, 0, Math.PI*2);
-            ctx.arc(Math.abs(cx) - 25, cy + 10, 25, 0, Math.PI*2);
-            ctx.fill();
+        // Clouds (Soft Bubbles)
+        ctx.filter = 'blur(5px)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        for(let i=0; i<10; i++) {
+            let cx = (Math.sin(i * 456) * 1000) % canvas.width;
+            let cy = (i * 150 + totalDistance * 1.2) % (canvas.height + 200) - 100;
+            ctx.beginPath(); ctx.arc(Math.abs(cx), cy, 40, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(Math.abs(cx)+30, cy+15, 30, 0, Math.PI*2); ctx.fill();
         }
         ctx.filter = 'none';
     }
