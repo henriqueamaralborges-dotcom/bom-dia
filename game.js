@@ -24,7 +24,7 @@ let frameCount = 0;
 let score = 0;
 let distance = 0;
 let totalDistance = 0;
-let gameSpeed = 2;
+let gameSpeed = 3;
 
 // Controle de Spawns independentes de Frames
 let distanceSinceLastEnemy = 0;
@@ -106,7 +106,7 @@ function initGame() {
     score = 0;
     distance = 0;
     totalDistance = 0;
-    gameSpeed = 2;
+    gameSpeed = 3;
     frameCount = 0;
     distanceSinceLastEnemy = 0;
     distanceSinceLastCoin = 0;
@@ -170,9 +170,9 @@ function update() {
     distanceSinceLastEnemy += gameSpeed;
     distanceSinceLastCoin += gameSpeed;
 
-    // Aumenta a velocidade da estrada progressivamente a cada frame de forma bem suave
-    // Incremento aumentado para ser mais rápido (0.0015 -> 0.003)
-    gameSpeed += 0.003;
+    // Aumenta a velocidade da estrada progressivamente a cada frame
+    // Incremento aumentado para 0.005
+    gameSpeed += 0.005;
 
     // A cada distância percorrida, ganha pontos
     if (distance > 100) {
