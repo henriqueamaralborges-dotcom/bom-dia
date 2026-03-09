@@ -14,12 +14,17 @@ const UI = {
     btnRestart: document.getElementById('btn-restart'),
     btnShopGo: document.getElementById('btn-shop-go'),
     btnShop: document.getElementById('btn-shop'),
-    btnCloseShop: document.getElementById('btn-close-shop')
+    btnCloseShop: document.getElementById('btn-close-shop'),
+    startMenu: document.getElementById('start-menu'),
+    btnStart: document.getElementById('btn-start'),
+    btnShopMenu: document.getElementById('btn-shop-menu'),
+    highScore: document.getElementById('high-score')
 };
 
 // Configurações do Jogo
 let isGameOver = false;
 let isGamePaused = false;
+let isGameStarted = false;
 let frameCount = 0;
 let score = 0;
 let distance = 0;
@@ -29,6 +34,7 @@ let gameSpeed = 3;
 // Controle de Spawns independentes de Frames
 let distanceSinceLastEnemy = 0;
 let distanceSinceLastCoin = 0;
+let highScore = localStorage.getItem('infinityDrive_highscore') || 0;
 
 // Objeto do Jogador
 const player = {
@@ -103,6 +109,7 @@ function initGame() {
     // Reset do estado
     isGameOver = false;
     isGamePaused = false;
+    isGameStarted = true;
     score = 0;
     distance = 0;
     totalDistance = 0;
@@ -125,6 +132,7 @@ function initGame() {
     // Atualiza interface
     UI.gameOverScreen.classList.add('hidden');
     UI.shopScreen.classList.add('hidden');
+    UI.startMenu.classList.add('hidden');
     UI.score.innerText = '0';
     UI.coins.innerText = totalCoins; // Variável vem de shop.js
 
@@ -132,6 +140,15 @@ function initGame() {
 
     // Inicia loop
     requestAnimationFrame(gameLoop);
+}
+
+function showMainMenu() {
+    isGameStarted = false;
+    UI.startMenu.classList.remove('hidden');
+    UI.highScore.innerText = highScore;
+    updatePlayerCarColor();
+    // Desenha o cenário parado de fundo
+    draw();
 }
 
 function spawnEnemy() {
@@ -162,6 +179,18 @@ function spawnCoin() {
 }
 
 function update() {
+    // No menu, as linhas da estrada continuam se movendo para dar efeito visual
+    if (!isGameStarted) {
+        totalDistance += 2; // Velocidade fixa de efeito no menu
+        for (let i = 0; i < roadLines.length; i++) {
+            roadLines[i].y += 2;
+            if (roadLines[i].y >= canvas.height) {
+                roadLines[i].y -= canvas.height + 60;
+            }
+        }
+        return;
+    }
+
     if (isGameOver || isGamePaused) return;
 
     frameCount++;
@@ -448,6 +477,13 @@ function draw() {
 // Fim de Jogo
 function triggerGameOver() {
     isGameOver = true;
+    
+    // Salva Recorde
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('infinityDrive_highscore', highScore);
+    }
+
     UI.finalScore.innerText = score;
     UI.finalCoins.innerText = totalCoins;
     UI.gameOverScreen.classList.remove('hidden');
@@ -468,6 +504,16 @@ UI.btnRestart.addEventListener('click', () => {
     initGame();
 });
 
+UI.btnStart.addEventListener('click', () => {
+    initGame();
+});
+
+UI.btnShopMenu.addEventListener('click', () => {
+    UI.startMenu.classList.add('hidden');
+    UI.shopScreen.classList.remove('hidden');
+    updateShopUI();
+});
+
 UI.btnShopGo.addEventListener('click', () => {
     UI.gameOverScreen.classList.add('hidden');
     UI.shopScreen.classList.remove('hidden');
@@ -486,7 +532,9 @@ UI.btnCloseShop.addEventListener('click', () => {
     UI.shopScreen.classList.add('hidden');
     updatePlayerCarColor();
 
-    if (!isGameOver && isGamePaused) {
+    if (!isGameStarted) {
+        UI.startMenu.classList.remove('hidden');
+    } else if (!isGameOver && isGamePaused) {
         isGamePaused = false;
         requestAnimationFrame(gameLoop);
     } else if (isGameOver) {
@@ -496,4 +544,13 @@ UI.btnCloseShop.addEventListener('click', () => {
 
 // Inicialização imediata ao carregar o script
 updatePlayerCarColor();
-initGame();
+showMainMenu();
+// Loop para manter a animação da estrada no menu
+function menuAnimationLoop() {
+    if (!isGameStarted) {
+        update();
+        draw();
+        requestAnimationFrame(menuAnimationLoop);
+    }
+}
+menuAnimationLoop();
