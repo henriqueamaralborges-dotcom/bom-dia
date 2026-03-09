@@ -144,10 +144,10 @@ function initGame() {
 
 function showMainMenu() {
     isGameStarted = false;
-    UI.startMenu.classList.remove('hidden');
-    UI.highScore.innerText = highScore;
+    if (UI.startMenu) UI.startMenu.classList.remove('hidden');
+    if (UI.highScore) UI.highScore.innerText = highScore;
     updatePlayerCarColor();
-    // Desenha o cenário parado de fundo
+    // Desenha o cenário
     draw();
 }
 
@@ -200,7 +200,6 @@ function update() {
     distanceSinceLastCoin += gameSpeed;
 
     // Aumenta a velocidade da estrada progressivamente a cada frame
-    // Incremento aumentado para 0.005
     gameSpeed += 0.005;
 
     // A cada distância percorrida, ganha pontos
@@ -235,7 +234,7 @@ function update() {
         }
     }
 
-    // Estratégia de Spawn Baseada em Distância Percorrida (Permite desacelerar sem encher a tela)
+    // Estratégia de Spawn Baseada em Distância Percorrida
     let minDistanceForEnemy = 150; // Distância mínima entre carros (em pixels)
     
     if (distanceSinceLastEnemy > minDistanceForEnemy && Math.random() < 0.05) {
@@ -253,7 +252,7 @@ function update() {
         let e = enemies[i];
         e.y += gameSpeed + e.speedOffset;
 
-        // Hitbox menorzinha pra ser justo (perdoar colisões de raspão)
+        // Hitbox menorzinha pra ser justo
         const margin = 4;
         if (player.x + margin < e.x + e.width - margin &&
             player.x + player.width - margin > e.x + margin &&
@@ -404,7 +403,7 @@ function draw() {
     ctx.fillStyle = '#383a40';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Detalhe de textura no asfalto fina (para dar sensação de velocidade)
+    // Detalhe de textura no asfalto fina
     ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
     for(let i=0; i<15; i++) {
         let rsx = (Math.sin(i * 123) * 1000) % canvas.width;
@@ -412,13 +411,13 @@ function draw() {
         ctx.fillRect(Math.abs(rsx), rsy, 3, 15);
     }
 
-    // Grama / Borda (Verde escuro de corrida com sombra lateral)
+    // Grama / Borda
     const gGradL = ctx.createLinearGradient(0, 0, 18, 0);
     gGradL.addColorStop(0, '#155d27');
-    gGradL.addColorStop(1, '#0e3a19'); // escurece chegando na pista
+    gGradL.addColorStop(1, '#0e3a19');
 
     const gGradR = ctx.createLinearGradient(canvas.width - 18, 0, canvas.width, 0);
-    gGradR.addColorStop(0, '#0e3a19'); // escurece chegando na pista
+    gGradR.addColorStop(0, '#0e3a19');
     gGradR.addColorStop(1, '#155d27');
 
     ctx.fillStyle = gGradL;
@@ -427,20 +426,17 @@ function draw() {
     ctx.fillStyle = gGradR;
     ctx.fillRect(canvas.width - 18, 0, 18, canvas.height);
 
-    // Listras laterais tipo zebra da corrida (Vermelho e Branco)
+    // Listras laterais tipo zebra
     const zebraSpeedBase = totalDistance % 60;
     for (let i = -60; i < canvas.height; i += 60) {
         ctx.fillStyle = (i + Math.floor(totalDistance / 60) * 60) % 120 < 60 ? '#cc0000' : '#ffffff';
-        // Margem esquerda
         ctx.fillRect(18, i + zebraSpeedBase, 4, 60);
-        // Margem direita
         ctx.fillRect(canvas.width - 22, i + zebraSpeedBase, 4, 60);
     }
 
     // Linhas centrais da Estrada tracejadas
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     for (let i = 0; i < roadLines.length; i++) {
-        // Linhas tracejadas no meio de 2 faixas com leve desfoque sombra
         ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
         ctx.shadowBlur = 4;
         ctx.fillRect(canvas.width / 3 - 2, roadLines[i].y, 4, 30);
@@ -459,8 +455,8 @@ function draw() {
         drawCar(ctx, e.x, e.y, e.width, e.height, e.color);
     }
 
-    // Desenha Jogador com Efeito de Exaustão (Fogo/Fumaça saindo do cano de escape ao acelerar)
-    if (!isGameOver && !isGamePaused && gameSpeed >= 4) {
+    // Desenha Jogador
+    if (!isGameOver && !isGamePaused && gameSpeed >= 4 && isGameStarted) {
         ctx.fillStyle = frameCount % 4 < 2 ? '#ffb700' : '#ff4400';
         ctx.beginPath();
         let fx = player.x + player.width/2;
@@ -470,8 +466,6 @@ function draw() {
     }
     
     drawCar(ctx, player.x, player.y, player.width, player.height, player.color);
-
-    // DEBUG HUD REMOVIDO PARA O JOGADOR NÃO TER ACESSO À VELOCIDADE EXATA
 }
 
 // Fim de Jogo
@@ -491,10 +485,12 @@ function triggerGameOver() {
 
 // Loop Principal
 function gameLoop() {
-    update();
-    draw();
-    if (!isGameOver) {
-        requestAnimationFrame(gameLoop);
+    if (isGameStarted) {
+        update();
+        draw();
+        if (!isGameOver) {
+            requestAnimationFrame(gameLoop);
+        }
     }
 }
 
@@ -517,7 +513,7 @@ UI.btnShopMenu.addEventListener('click', () => {
 UI.btnShopGo.addEventListener('click', () => {
     UI.gameOverScreen.classList.add('hidden');
     UI.shopScreen.classList.remove('hidden');
-    updateShopUI(); // Em shop.js
+    updateShopUI();
 });
 
 UI.btnShop.addEventListener('click', () => {
@@ -545,6 +541,7 @@ UI.btnCloseShop.addEventListener('click', () => {
 // Inicialização imediata ao carregar o script
 updatePlayerCarColor();
 showMainMenu();
+
 // Loop para manter a animação da estrada no menu
 function menuAnimationLoop() {
     if (!isGameStarted) {
