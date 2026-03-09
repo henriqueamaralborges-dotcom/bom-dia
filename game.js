@@ -171,8 +171,8 @@ function update() {
     distanceSinceLastCoin += gameSpeed;
 
     // Aumenta a velocidade da estrada progressivamente a cada frame de forma bem suave
-    // Incremento levemente maior para ser mais perceptível (0.001 -> 0.0015)
-    gameSpeed += 0.0015;
+    // Incremento aumentado para ser mais rápido (0.0015 -> 0.003)
+    gameSpeed += 0.003;
 
     // A cada distância percorrida, ganha pontos
     if (distance > 100) {
