@@ -19,11 +19,10 @@ const UI = {
     btnStart: document.getElementById('btn-start'),
     btnShopMenu: document.getElementById('btn-shop-menu'),
     highScore: document.getElementById('high-score'),
-    pauseButton: document.getElementById('btn-pause'),
+    btnPause: document.getElementById('btn-pause'),
     pauseScreen: document.getElementById('pause-screen'),
     btnResume: document.getElementById('btn-resume'),
-    btnShopPause: document.getElementById('btn-shop-pause'),
-    modeButtons: document.querySelectorAll('.mode-btn')
+    btnShopPause: document.getElementById('btn-shop-pause')
 };
 
 // Configurações do Jogo
@@ -107,14 +106,19 @@ canvas.addEventListener('touchend', () => {
 });
 
 // Seletor de Modo
-UI.modeButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        UI.modeButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentMode = btn.dataset.mode;
-        draw(); // Atualiza fundo no menu
+function setupModeButtons() {
+    const buttons = document.querySelectorAll('.mode-btn');
+    buttons.forEach(btn => {
+        btn.onclick = () => {
+            console.log("Mudando para o modo:", btn.dataset.mode);
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMode = btn.dataset.mode;
+            draw(); // Atualiza fundo no menu
+        };
     });
-});
+}
+setupModeButtons();
 
 // Listas de entidades
 let enemies = [];
@@ -547,41 +551,46 @@ function gameLoop() {
     }
 }
 
-UI.btnRestart.addEventListener('click', () => {
+if (UI.btnRestart) UI.btnRestart.onclick = () => {
+    console.log("Reiniciando...");
     initGame();
-});
+};
 
-UI.btnStart.addEventListener('click', () => {
+if (UI.btnStart) UI.btnStart.onclick = () => {
+    console.log("Iniciando...");
     initGame();
-});
+};
 
-UI.btnShopMenu.addEventListener('click', () => {
+if (UI.btnShopMenu) UI.btnShopMenu.onclick = () => {
     UI.startMenu.classList.add('hidden');
     UI.shopScreen.classList.remove('hidden');
     updateShopUI();
-});
+};
 
-UI.btnShopGo.addEventListener('click', () => {
+if (UI.btnShopGo) UI.btnShopGo.onclick = () => {
     UI.gameOverScreen.classList.add('hidden');
     UI.shopScreen.classList.remove('hidden');
     updateShopUI();
-});
+};
 
-UI.btnPause.addEventListener('click', () => {
-    if (isGameStarted && !isGameOver && !isGamePaused) {
+if (UI.btnPause) UI.btnPause.onclick = (e) => {
+    e.stopPropagation();
+    if (isGameStarted && !isGameOver) {
         togglePause();
     }
-});
+};
 
-UI.btnResume.addEventListener('click', () => {
+if (UI.btnResume) UI.btnResume.onclick = (e) => {
+    e.stopPropagation();
     togglePause();
-});
+};
 
-UI.btnShopPause.addEventListener('click', () => {
+if (UI.btnShopPause) UI.btnShopPause.onclick = (e) => {
+    e.stopPropagation();
     UI.pauseScreen.classList.add('hidden');
     UI.shopScreen.classList.remove('hidden');
     updateShopUI();
-});
+};
 
 function togglePause() {
     isGamePaused = !isGamePaused;
@@ -592,25 +601,29 @@ function togglePause() {
     }
 }
 
-UI.btnShop.addEventListener('click', () => {
+if (UI.btnShop) UI.btnShop.onclick = (e) => {
+    e.stopPropagation();
     if (!isGameOver) {
         isGamePaused = true;
+        UI.pauseScreen.classList.add('hidden'); // Esconde pausa se estiver aberta
         UI.shopScreen.classList.remove('hidden');
         updateShopUI();
     }
-});
+};
 
-UI.btnCloseShop.addEventListener('click', () => {
+if (UI.btnCloseShop) UI.btnCloseShop.onclick = (e) => {
+    e.stopPropagation();
     UI.shopScreen.classList.add('hidden');
     updatePlayerCarColor();
     if (!isGameStarted) {
         UI.startMenu.classList.remove('hidden');
-    } else if (!isGameOver && isGamePaused) {
-        isGamePaused = false;
     } else if (isGameOver) {
         UI.gameOverScreen.classList.remove('hidden');
+    } else if (isGamePaused) {
+        // Se estava pausado, volta para a tela de pausa
+        UI.pauseScreen.classList.remove('hidden');
     }
-});
+};
 
 updatePlayerCarColor();
 showMainMenu();
