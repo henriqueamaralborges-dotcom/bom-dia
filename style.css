@@ -167,6 +167,27 @@ canvas {
     margin-top: 20px;
 }
 
+/* Seletor de Modos */
+.mode-btn {
+    background: #333;
+    border: 2px solid transparent;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.mode-btn.active {
+    border-color: #00c6ff;
+    box-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+}
+
+#mode-selector p {
+    font-weight: bold;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 /* Lista da Loja */
 #shop-items {
     width: 95%;

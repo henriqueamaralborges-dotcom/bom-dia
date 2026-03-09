@@ -22,7 +22,8 @@ const UI = {
     pauseButton: document.getElementById('btn-pause'),
     pauseScreen: document.getElementById('pause-screen'),
     btnResume: document.getElementById('btn-resume'),
-    btnShopPause: document.getElementById('btn-shop-pause')
+    btnShopPause: document.getElementById('btn-shop-pause'),
+    modeButtons: document.querySelectorAll('.mode-btn')
 };
 
 // Configurações do Jogo
@@ -35,6 +36,7 @@ let distance = 0;
 let totalDistance = 0;
 let gameSpeed = 3;
 let gameLoopId = null;
+let currentMode = 'road'; // 'road', 'water', 'air'
 
 // Controle de Spawns independentes de Frames
 let distanceSinceLastEnemy = 0;
@@ -73,7 +75,6 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'a' || e.key === 'A') keys.a = true;
     if (e.key === 'd' || e.key === 'D') keys.d = true;
 
-    // Cheats para testes
     if (e.key === 'p' || e.key === 'P') {
         if (typeof totalCoins !== 'undefined') {
             totalCoins += 1000;
@@ -89,7 +90,7 @@ document.addEventListener('keyup', (e) => {
     if (e.key === 'd' || e.key === 'D') keys.d = false;
 });
 
-// Inputs (Toque - suporte básico para mobile)
+// Inputs (Toque)
 canvas.addEventListener('touchstart', (e) => {
     const touchX = e.touches[0].clientX;
     const canvasRect = canvas.getBoundingClientRect();
@@ -105,13 +106,22 @@ canvas.addEventListener('touchend', () => {
     keys.ArrowRight = false;
 });
 
+// Seletor de Modo
+UI.modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        UI.modeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMode = btn.dataset.mode;
+        draw(); // Atualiza fundo no menu
+    });
+});
+
 // Listas de entidades
 let enemies = [];
 let coins = [];
 let roadLines = [];
 
 function initGame() {
-    // Reset do estado
     isGameOver = false;
     isGamePaused = false;
     isGameStarted = true;
@@ -129,22 +139,19 @@ function initGame() {
     coins = [];
     roadLines = [];
 
-    // Inicia a estrada animada
     for (let i = 0; i < canvas.height; i += 60) {
         roadLines.push({ y: i });
     }
 
-    // Atualiza interface
     UI.gameOverScreen.classList.add('hidden');
     UI.shopScreen.classList.add('hidden');
     UI.startMenu.classList.add('hidden');
     UI.pauseScreen.classList.add('hidden');
     UI.score.innerText = '0';
-    UI.coins.innerText = totalCoins; // Variável vem de shop.js
+    UI.coins.innerText = totalCoins;
 
     updatePlayerCarColor();
 
-    // Inicia loop (cancelando qualquer um anterior por segurança)
     if (gameLoopId) cancelAnimationFrame(gameLoopId);
     gameLoopId = requestAnimationFrame(gameLoop);
 }
@@ -154,22 +161,16 @@ function showMainMenu() {
     if (UI.startMenu) UI.startMenu.classList.remove('hidden');
     if (UI.highScore) UI.highScore.innerText = highScore;
     updatePlayerCarColor();
-    // Desenha o cenário
     draw();
 }
 
 function spawnEnemy() {
     const width = 36;
     const height = 60;
-    // Posição X aleatória garantindo que não saia da pista (margens de 20px)
     const minX = 20;
     const maxX = canvas.width - width - 20;
     const x = Math.random() * (maxX - minX) + minX;
-
-    // Inimigos tem velocidade levemente variada em relação à estrada (descem um pouco mais rápido)
     const speedOffset = Math.random() * 2 + 1;
-
-    // Cores aleatórias para inimigos
     const colors = ['#33ff33', '#3333ff', '#ff33ff', '#33ffff', '#ff9900', '#aaaaaa'];
     const color = colors[Math.floor(Math.random() * colors.length)];
 
@@ -186,9 +187,8 @@ function spawnCoin() {
 }
 
 function update() {
-    // No menu, as linhas da estrada continuam se movendo para dar efeito visual
     if (!isGameStarted) {
-        totalDistance += 2; // Velocidade fixa de efeito no menu
+        totalDistance += 2;
         for (let i = 0; i < roadLines.length; i++) {
             roadLines[i].y += 2;
             if (roadLines[i].y >= canvas.height) {
@@ -206,17 +206,14 @@ function update() {
     distanceSinceLastEnemy += gameSpeed;
     distanceSinceLastCoin += gameSpeed;
 
-    // Aumenta a velocidade da estrada progressivamente a cada frame
     gameSpeed += 0.005;
 
-    // A cada distância percorrida, ganha pontos
     if (distance > 100) {
         score += 1;
         distance = 0;
         UI.score.innerText = score;
     }
 
-    // Movimentação do Jogador
     if (keys.ArrowLeft || keys.a) {
         player.dx = -player.speed;
     } else if (keys.ArrowRight || keys.d) {
@@ -227,23 +224,19 @@ function update() {
 
     player.x += player.dx;
 
-    // Colisão com as margens (não deixa sair da tela)
     if (player.x < 15) player.x = 15;
     if (player.x + player.width > canvas.width - 15) {
         player.x = canvas.width - player.width - 15;
     }
 
-    // Animação das linhas da estrada
     for (let i = 0; i < roadLines.length; i++) {
         roadLines[i].y += gameSpeed;
         if (roadLines[i].y >= canvas.height) {
-            roadLines[i].y -= canvas.height + 60; // Repõe no topo
+            roadLines[i].y -= canvas.height + 60;
         }
     }
 
-    // Estratégia de Spawn Baseada em Distância Percorrida
-    let minDistanceForEnemy = 150; // Distância mínima entre carros (em pixels)
-    
+    let minDistanceForEnemy = 150;
     if (distanceSinceLastEnemy > minDistanceForEnemy && Math.random() < 0.05) {
         spawnEnemy();
         distanceSinceLastEnemy = 0;
@@ -254,12 +247,9 @@ function update() {
         distanceSinceLastCoin = 0;
     }
 
-    // Atualiza Inimigos
     for (let i = 0; i < enemies.length; i++) {
         let e = enemies[i];
         e.y += gameSpeed + e.speedOffset;
-
-        // Hitbox menorzinha pra ser justo
         const margin = 4;
         if (player.x + margin < e.x + e.width - margin &&
             player.x + player.width - margin > e.x + margin &&
@@ -269,27 +259,19 @@ function update() {
         }
     }
 
-    // Limpeza de arrays
     enemies = enemies.filter(e => e.y < canvas.height);
 
-    // Atualiza Moedas
     for (let i = 0; i < coins.length; i++) {
         let c = coins[i];
         c.y += gameSpeed;
-
-        // Colisão com moedas
         if (player.x < c.x + c.width &&
             player.x + player.width > c.x &&
             player.y < c.y + c.height &&
             player.y + player.height > c.y) {
-
-            // Coletou Moeda
             totalCoins += 1;
             c.collected = true;
-
-            // Atualiza UI e Salva Setup
             UI.coins.innerText = totalCoins;
-            saveProgress(); // De shop.js
+            saveProgress();
         }
     }
 
@@ -297,24 +279,31 @@ function update() {
 }
 
 // Funções de Desenho
+function drawVehicle(ctx, x, y, width, height, color, type) {
+    if (type === 'road') {
+        drawCar(ctx, x, y, width, height, color);
+    } else if (type === 'water') {
+        drawBoat(ctx, x, y, width, height, color);
+    } else if (type === 'air') {
+        drawPlane(ctx, x, y, width, height, color);
+    }
+}
+
 function drawCar(ctx, x, y, width, height, color) {
-    // Sombra do carro
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.beginPath();
     ctx.roundRect(x + 4, y + 4, width, height, 5);
     ctx.fill();
 
-    // Pneus
     ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(x - 2, y + 10, 4, 12); // Pneu Esq Frente
-    ctx.fillRect(x + width - 2, y + 10, 4, 12); // Pneu Dir Frente
-    ctx.fillRect(x - 2, y + height - 22, 4, 12); // Pneu Esq Trás
-    ctx.fillRect(x + width - 2, y + height - 22, 4, 12); // Pneu Dir Trás
+    ctx.fillRect(x - 2, y + 10, 4, 12);
+    ctx.fillRect(x + width - 2, y + 10, 4, 12);
+    ctx.fillRect(x - 2, y + height - 22, 4, 12);
+    ctx.fillRect(x + width - 2, y + height - 22, 4, 12);
 
-    // Chassi Principal com Degradê
     const grad = ctx.createLinearGradient(x, y, x + width, y);
     grad.addColorStop(0, color);
-    grad.addColorStop(0.5, '#ffffff33'); // Brilho leve no centro
+    grad.addColorStop(0.5, '#ffffff33');
     grad.addColorStop(1, color);
 
     ctx.fillStyle = grad;
@@ -322,44 +311,93 @@ function drawCar(ctx, x, y, width, height, color) {
     ctx.roundRect(x, y, width, height, 6);
     ctx.fill();
 
-    // Teto / Cockpit
     ctx.fillStyle = color;
-    ctx.filter = 'brightness(85%)'; // Escurecer levemente a parte central
+    ctx.filter = 'brightness(85%)';
     ctx.beginPath();
     ctx.roundRect(x + 4, y + 14, width - 8, height - 28, 4);
     ctx.fill();
     ctx.filter = 'none';
 
-    // Parabrisas (Vidros escuros com reflexo)
     ctx.fillStyle = '#223344';
     ctx.beginPath();
-    ctx.roundRect(x + 5, y + 15, width - 10, 12, 3); // Dianteiro
-    ctx.roundRect(x + 5, y + height - 25, width - 10, 10, 3); // Traseiro
+    ctx.roundRect(x + 5, y + 15, width - 10, 12, 3);
+    ctx.roundRect(x + 5, y + height - 25, width - 10, 10, 3);
     ctx.fill();
 
-    // Reflexo no vidro dianteiro
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.beginPath();
     ctx.rect(x + 5, y + 15, width - 10, 4);
     ctx.fill();
 
-    // Faróis (Dianteiros - Luz branca/amarelada dependendo do status)
     ctx.fillStyle = '#ffffee'; 
     ctx.beginPath();
-    ctx.roundRect(x + 3, y + 2, 8, 5, 2); // Esq
-    ctx.roundRect(x + width - 11, y + 2, 8, 5, 2); // Dir
+    ctx.roundRect(x + 3, y + 2, 8, 5, 2);
+    ctx.roundRect(x + width - 11, y + 2, 8, 5, 2);
     ctx.fill();
 
-    // Lanternas Traseiras (Vermelho vivo)
     ctx.fillStyle = '#ff2222';
     ctx.beginPath();
-    ctx.roundRect(x + 3, y + height - 6, 10, 4, 2); // Esq
-    ctx.roundRect(x + width - 13, y + height - 6, 10, 4, 2); // Dir
+    ctx.roundRect(x + 3, y + height - 6, 10, 4, 2);
+    ctx.roundRect(x + width - 13, y + height - 6, 10, 4, 2);
     ctx.fill();
     
-    // Detalhe central no parachoque traseiro (Plaquinha / Exaustão)
     ctx.fillStyle = '#333';
     ctx.fillRect(x + width/2 - 4, y + height - 4, 8, 3);
+}
+
+function drawBoat(ctx, x, y, width, height, color) {
+    // Sombra na água
+    ctx.fillStyle = 'rgba(0, 40, 80, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(x + width/2 + 4, y + height/2 + 4, width/2, height/2 + 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Casco do Barco (Formato de gota/ponta na frente)
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x + width/2, y); // Ponta frente
+    ctx.bezierCurveTo(x + width, y + height*0.3, x + width, y + height, x + width/2, y + height);
+    ctx.bezierCurveTo(x, y + height, x, y + height*0.3, x + width/2, y);
+    ctx.fill();
+
+    // Interior / Deck
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.ellipse(x + width/2, y + height*0.6, width/3, height/4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Motor de popa
+    ctx.fillStyle = '#111';
+    ctx.fillRect(x + width/2 - 5, y + height - 5, 10, 8);
+}
+
+function drawPlane(ctx, x, y, width, height, color) {
+    // Sombra (Mais distante)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.beginPath();
+    ctx.ellipse(x + width/2 + 10, y + height/2 + 10, width, height/2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Asas
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x - width*0.8, y + height*0.3, width*2.6, height*0.2, 5);
+    ctx.fill();
+
+    // Fuselagem
+    ctx.fillStyle = color;
+    ctx.filter = 'brightness(110%)';
+    ctx.beginPath();
+    ctx.ellipse(x + width/2, y + height/2, width/2, height/2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.filter = 'none';
+
+    // Hélices (Girando)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x + width/2, y, width*0.8, 0, Math.PI * 2);
+    ctx.stroke();
 }
 
 function drawCoin(ctx, x, y, size) {
@@ -367,13 +405,11 @@ function drawCoin(ctx, x, y, size) {
     const ry = y + size / 2;
     const r = size / 2;
 
-    // Sombra da moeda
     ctx.beginPath();
     ctx.arc(rx, ry + 4, r, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.fill();
 
-    // Moeda (Centro amarelo com borda mais escura)
     const grad = ctx.createRadialGradient(rx - size/4, ry - size/4, size/10, rx, ry, r);
     grad.addColorStop(0, '#ffffaa');
     grad.addColorStop(0.6, '#ffd700');
@@ -384,85 +420,98 @@ function drawCoin(ctx, x, y, size) {
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Borda interna brilhante
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = '#fff172';
     ctx.beginPath();
     ctx.arc(rx, ry, r - 2, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Símbolo $ texturizado
-    ctx.fillStyle = '#946c00'; // Sombra do texto
+    ctx.fillStyle = '#946c00';
     ctx.font = 'bold 15px "Segoe UI", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('$', rx, ry + 1.5);
     
-    ctx.fillStyle = '#ffffff'; // Brilho principal
+    ctx.fillStyle = '#ffffff';
     ctx.fillText('$', rx, ry - 0.5);
 }
 
 function draw() {
-    // Limpa a tela
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Fundo da Estrada (Asfalto Realista)
-    ctx.fillStyle = '#383a40';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Detalhe de textura no asfalto fina
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
-    for(let i=0; i<15; i++) {
-        let rsx = (Math.sin(i * 123) * 1000) % canvas.width;
-        let rsy = (i * 100 + totalDistance * 1.2) % canvas.height;
-        ctx.fillRect(Math.abs(rsx), rsy, 3, 15);
+    if (currentMode === 'road') {
+        // Asfalto
+        ctx.fillStyle = '#383a40';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+        for(let i=0; i<15; i++) {
+            let rsx = (Math.sin(i * 123) * 1000) % canvas.width;
+            let rsy = (i * 100 + totalDistance * 1.2) % canvas.height;
+            ctx.fillRect(Math.abs(rsx), rsy, 3, 15);
+        }
+
+        const zebraSpeedBase = totalDistance % 60;
+        for (let i = -60; i < canvas.height; i += 60) {
+            ctx.fillStyle = (i + Math.floor(totalDistance / 60) * 60) % 120 < 60 ? '#cc0000' : '#ffffff';
+            ctx.fillRect(18, i + zebraSpeedBase, 4, 60);
+            ctx.fillRect(canvas.width - 22, i + zebraSpeedBase, 4, 60);
+        }
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        for (let i = 0; i < roadLines.length; i++) {
+            ctx.fillRect(canvas.width / 3 - 2, roadLines[i].y, 4, 30);
+            ctx.fillRect((canvas.width / 3) * 2 - 2, roadLines[i].y, 4, 30);
+        }
+    } else if (currentMode === 'water') {
+        // Água
+        ctx.fillStyle = '#0066cc';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Ondas / Bolhas
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        for(let i=0; i<20; i++) {
+            let rsx = (Math.sin(i * 123) * 1000) % canvas.width;
+            let rsy = (i * 80 + totalDistance * 1.5) % canvas.height;
+            ctx.beginPath();
+            ctx.arc(Math.abs(rsx), rsy, 2 + Math.random()*3, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        // Bordas da Margem (Areia/Terra)
+        ctx.fillStyle = '#d2b48c';
+        ctx.fillRect(0, 0, 15, canvas.height);
+        ctx.fillRect(canvas.width - 15, 0, 15, canvas.height);
+    } else if (currentMode === 'air') {
+        // Céu
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        skyGrad.addColorStop(0, '#87ceeb');
+        skyGrad.addColorStop(1, '#4682b4');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Nuvens
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        for(let i=0; i<8; i++) {
+            let rsx = (Math.sin(i * 456) * 1000) % canvas.width;
+            let rsy = (i * 150 + totalDistance * 0.8) % canvas.height;
+            ctx.beginPath();
+            ctx.arc(Math.abs(rsx), rsy, 30, 0, Math.PI*2);
+            ctx.arc(Math.abs(rsx) + 20, rsy + 10, 25, 0, Math.PI*2);
+            ctx.arc(Math.abs(rsx) - 20, rsy + 10, 25, 0, Math.PI*2);
+            ctx.fill();
+        }
     }
 
-    // Grama / Borda
-    const gGradL = ctx.createLinearGradient(0, 0, 18, 0);
-    gGradL.addColorStop(0, '#155d27');
-    gGradL.addColorStop(1, '#0e3a19');
-
-    const gGradR = ctx.createLinearGradient(canvas.width - 18, 0, canvas.width, 0);
-    gGradR.addColorStop(0, '#0e3a19');
-    gGradR.addColorStop(1, '#155d27');
-
-    ctx.fillStyle = gGradL;
-    ctx.fillRect(0, 0, 18, canvas.height);
-    
-    ctx.fillStyle = gGradR;
-    ctx.fillRect(canvas.width - 18, 0, 18, canvas.height);
-
-    // Listras laterais tipo zebra
-    const zebraSpeedBase = totalDistance % 60;
-    for (let i = -60; i < canvas.height; i += 60) {
-        ctx.fillStyle = (i + Math.floor(totalDistance / 60) * 60) % 120 < 60 ? '#cc0000' : '#ffffff';
-        ctx.fillRect(18, i + zebraSpeedBase, 4, 60);
-        ctx.fillRect(canvas.width - 22, i + zebraSpeedBase, 4, 60);
-    }
-
-    // Linhas centrais da Estrada tracejadas
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    for (let i = 0; i < roadLines.length; i++) {
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-        ctx.shadowBlur = 4;
-        ctx.fillRect(canvas.width / 3 - 2, roadLines[i].y, 4, 30);
-        ctx.fillRect((canvas.width / 3) * 2 - 2, roadLines[i].y, 4, 30);
-        ctx.shadowBlur = 0;
-    }
-
-    // Moedas
     for (let c of coins) {
         let hoverY = Math.sin((frameCount + c.x) * 0.1) * 3;
         drawCoin(ctx, c.x, c.y + hoverY, c.width);
     }
 
-    // Desenha Inimigos
     for (let e of enemies) {
-        drawCar(ctx, e.x, e.y, e.width, e.height, e.color);
+        drawVehicle(ctx, e.x, e.y, e.width, e.height, e.color, currentMode);
     }
 
-    // Desenha Jogador
     if (!isGameOver && !isGamePaused && gameSpeed >= 4 && isGameStarted) {
         ctx.fillStyle = frameCount % 4 < 2 ? '#ffb700' : '#ff4400';
         ctx.beginPath();
@@ -472,39 +521,31 @@ function draw() {
         ctx.fill();
     }
     
-    drawCar(ctx, player.x, player.y, player.width, player.height, player.color);
+    drawVehicle(ctx, player.x, player.y, player.width, player.height, player.color, currentMode);
 }
 
-// Fim de Jogo
 function triggerGameOver() {
     isGameOver = true;
-    
-    // Salva Recorde
     if (score > highScore) {
         highScore = score;
         localStorage.setItem('infinityDrive_highscore', highScore);
     }
-
     UI.finalScore.innerText = score;
     UI.finalCoins.innerText = totalCoins;
     UI.gameOverScreen.classList.remove('hidden');
 }
 
-// Loop Principal
 function gameLoop() {
     if (isGameStarted) {
         if (!isGamePaused && !isGameOver) {
             update();
         }
         draw();
-        
         if (!isGameOver) {
             gameLoopId = requestAnimationFrame(gameLoop);
         }
     }
 }
-
-// ---------- Eventos de Botões ----------
 
 UI.btnRestart.addEventListener('click', () => {
     initGame();
@@ -562,23 +603,18 @@ UI.btnShop.addEventListener('click', () => {
 UI.btnCloseShop.addEventListener('click', () => {
     UI.shopScreen.classList.add('hidden');
     updatePlayerCarColor();
-
     if (!isGameStarted) {
         UI.startMenu.classList.remove('hidden');
     } else if (!isGameOver && isGamePaused) {
-        // Apenas despausa o jogo
-        // O loop já está rodando nos bastidores, apenas esperando isGamePaused ser false
         isGamePaused = false;
     } else if (isGameOver) {
         UI.gameOverScreen.classList.remove('hidden');
     }
 });
 
-// Inicialização imediata ao carregar o script
 updatePlayerCarColor();
 showMainMenu();
 
-// Loop para manter a animação da estrada no menu
 function menuAnimationLoop() {
     if (!isGameStarted) {
         update();
@@ -586,7 +622,5 @@ function menuAnimationLoop() {
         gameLoopId = requestAnimationFrame(menuAnimationLoop);
     }
 }
-
-// Inicia o processo limpando qualquer loop fantasma
 if (gameLoopId) cancelAnimationFrame(gameLoopId);
 menuAnimationLoop();
