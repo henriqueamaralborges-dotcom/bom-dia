@@ -3,73 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infinity Drive</title>
+    <title>Infinity Drive | Premium Racing</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
         <!-- HUD Principal -->
         <div id="hud">
-            <div class="hud-item">Pontos: <span id="score">0</span></div>
-            <div class="hud-item txt-gold">Moedas: <span id="coins">0</span></div>
-            <button id="btn-pause" class="btn">Pausa</button>
-            <button id="btn-shop" class="btn">Loja</button>
+            <div class="hud-item">SCORE: <span id="score">0</span></div>
+            <div class="hud-item txt-gold">GOLD: <span id="coins">0</span></div>
+            <div style="display: flex; gap: 8px; pointer-events: auto;">
+                <button id="btn-pause" class="btn" style="padding: 8px;">⏸</button>
+                <button id="btn-shop" class="btn" style="padding: 8px;">🚗</button>
+            </div>
         </div>
         
         <!-- Canvas do Jogo -->
-        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <canvas id="gameCanvas" width="400" height="700"></canvas>
 
         <!-- Menu Principal -->
         <div id="start-menu" class="overlay">
-            <h1 class="main-title">INFINITY DRIVE</h1>
-            <p class="txt-gold">Recorde: <span id="high-score">0</span></p>
+            <h1 class="main-title">INFINITY</h1>
+            <h1 class="main-title" style="font-size: 36px; margin-top: -15px; margin-bottom: 20px;">DRIVE</h1>
+            <p class="txt-gold" style="font-size: 18px; font-weight: 700;">BEST: <span id="high-score">0</span></p>
             
             <!-- Seletor de Modo -->
-            <div id="mode-selector" class="mt-20">
-                <p style="font-size: 14px; margin-bottom: 5px;">Escolha o seu Terreno:</p>
-                <div style="display: flex; gap: 8px; justify-content: center;">
-                    <button id="mode-road" class="btn mode-btn active" data-mode="road">🚗 Estrada</button>
-                    <button id="mode-water" class="btn mode-btn" data-mode="water">🚤 Água</button>
-                    <button id="mode-air" class="btn mode-btn" data-mode="air">🛩️ Ar</button>
+            <div id="mode-selector">
+                <p style="font-size: 12px; margin-bottom: 12px; color: #888; text-transform: uppercase; letter-spacing: 2px;">Select Terrain</p>
+                <div class="mode-grid">
+                    <button id="mode-road" class="mode-btn active" data-mode="road">
+                        <span style="font-size: 32px;">🛣️</span>
+                        <span>ROAD</span>
+                    </button>
+                    <button id="mode-water" class="mode-btn" data-mode="water">
+                        <span style="font-size: 32px;">🌊</span>
+                        <span>WATER</span>
+                    </button>
+                    <button id="mode-air" class="mode-btn" data-mode="air">
+                        <span style="font-size: 32px;">☁️</span>
+                        <span>AIR</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="buttons-container mt-20">
-                <button id="btn-start" class="btn btn-large mb-20" style="height: 60px; font-size: 20px;">JOGAR</button>
-                <button id="btn-shop-menu" class="btn btn-secondary">Garagem</button>
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 10px;">
+                <button id="btn-start" class="btn btn-large">START ENGINE</button>
+                <button id="btn-shop-menu" class="btn btn-secondary">GARAGE</button>
             </div>
         </div>
         
         <!-- Tela de Pausa -->
         <div id="pause-screen" class="overlay hidden">
-            <h2 class="title-animation">Jogo Pausado</h2>
-            <div class="buttons-container mt-20">
-                <button id="btn-resume" class="btn btn-large mb-20">Continuar Jogando</button>
-                <button id="btn-shop-pause" class="btn btn-secondary">Garagem / Loja</button>
+            <h2 class="title-animation" style="color: #00c6ff;">PAUSED</h2>
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                <button id="btn-resume" class="btn btn-large">RESUME</button>
+                <button id="btn-shop-pause" class="btn btn-secondary">VISIT GARAGE</button>
             </div>
         </div>
 
         <!-- Tela de Game Over -->
         <div id="game-over" class="overlay hidden">
-            <h2 class="title-animation">Game Over!</h2>
-            <p>Sua Pontuação: <span id="final-score">0</span></p>
-            <p class="txt-gold">Total de Moedas: <span id="final-coins">0</span></p>
-            <div class="buttons-container">
-                <button id="btn-restart" class="btn btn-large">Jogar Novamente</button>
-                <button id="btn-shop-go" class="btn btn-secondary">Ir para a Garagem</button>
+            <h2 class="title-animation">CRASHED!</h2>
+            <div style="margin-bottom: 30px;">
+                <p style="font-size: 16px; color: #aaa;">SCORE</p>
+                <p style="font-size: 40px; font-weight: 900;" id="final-score">0</p>
+                <p class="txt-gold" style="margin-top: 10px;">TOTAL GOLD: <span id="final-coins">0</span></p>
+            </div>
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                <button id="btn-restart" class="btn btn-large">TRY AGAIN</button>
+                <button id="btn-shop-go" class="btn btn-secondary">GARAGE</button>
             </div>
         </div>
 
         <!-- Tela da Loja / Garagem -->
         <div id="shop" class="overlay hidden">
-            <h2 class="title-animation">Garagem</h2>
-            <p class="txt-gold mb-20">Saldo de Moedas: <span id="shop-coins">0</span></p>
+            <h2 class="title-animation" style="color: #ffd700; margin-bottom: 10px;">GARAGE</h2>
+            <p class="txt-gold" style="margin-bottom: 20px; font-size: 18px;">GOLD: <span id="shop-coins">0</span></p>
             
             <div id="shop-items">
-                <!-- Itens da loja serão gerados pelo JS -->
+                <!-- Itens auto-gerados -->
             </div>
             
-            <button id="btn-close-shop" class="btn btn-large mt-20">Voltar ao Jogo</button>
+            <button id="btnCloseShop" class="btn btn-large mt-20" style="margin-top: 20px;">BACK TO RACE</button>
         </div>
     </div>
 
